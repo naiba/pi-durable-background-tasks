@@ -2,7 +2,11 @@
 
 Supervised background shell commands for Pi Durable. No delegated agents, model configuration, or implicit model calls.
 
-**Initial development version. Linux only; requires Python 3.9+ and Linux pidfd support.** Not yet published to npm.
+**Initial development version. Linux only; requires Python 3.9+ and Linux pidfd support.**
+
+```sh
+bun add @naiba/pi-durable-background-tasks
+```
 
 ## Usage
 
@@ -43,3 +47,14 @@ bun test
 ```
 
 Tests exercise real Linux processes rather than mocked cancellation. The build includes the Python supervisor beside the JavaScript distribution.
+
+## Publishing
+
+Releases use `.github/workflows/publish.yml` on pushed `v*` tags, with npm Trusted Publishing (OIDC); no npm token secret is required. Configure this package's GitHub Actions trusted publisher on npm:
+
+- Organization or user: `naiba`
+- Repository: `pi-durable-background-tasks`
+- Workflow filename: `publish.yml`
+- Environment: leave empty (the workflow does not declare an environment)
+
+Update `package.json` to a new stable version, refresh `bun.lock` if needed, commit and push, then push the matching tag (for example, `v0.1.1` for version `0.1.1`). The workflow rejects mismatching or prerelease versions, runs type checks, build and process tests, then publishes publicly with provenance. Published versions are immutable: `0.1.0` already exists and must not be republished. Never move a published release tag. There is no manual-dispatch publish path.

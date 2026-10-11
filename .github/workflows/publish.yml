@@ -1,0 +1,56 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'naiba/pi-durable-background-tasks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.3'
+      - name: Check release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          const { name, version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (name !== '@naiba/pi-durable-background-tasks' ||
+              !/^\d+\.\d+\.\d+$/.test(version) ||
+              process.env.RELEASE_TAG !== `v${version}`) {
+            throw new Error('Stable release tag must exactly match package.json: v<version>');
+          }
+          JS
+      - name: Ensure OIDC-capable npm
+        run: npm install --global npm@11
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run build
+      - run: bun test
+      - name: Inspect package contents
+        run: npm pack --dry-run
+      - name: Publish with npm Trusted Publishing
+        run: npm publish --access public --provenance
