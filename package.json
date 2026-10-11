@@ -1,12 +1,12 @@
 {
   "name": "@naiba/pi-durable-background-tasks",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Background shell tools for Pi Durable; no model delegation",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/naiba/pi-durable-background-tasks.git"
+    "url": "git+https://github.com/naiba/pi-durable-background-tasks.git"
   },
   "exports": {
     ".": {
