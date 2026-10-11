@@ -9,12 +9,21 @@
     "url": "https://github.com/naiba/pi-durable-background-tasks.git"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./pi": "./dist/pi.js"
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./pi": {
+      "bun": "./src/pi.ts",
+      "types": "./dist/pi.d.ts",
+      "default": "./dist/pi.js"
+    }
   },
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
