@@ -13,7 +13,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Run the shared Test workflow on this exact tag before granting publish access.
+  test:
+    if: github.repository == 'naiba/pi-durable-background-tasks'
+    uses: ./.github/workflows/test.yml
+    permissions:
+      contents: read
+
   publish:
+    needs: test
     if: github.repository == 'naiba/pi-durable-background-tasks'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -47,9 +55,7 @@ jobs:
       - name: Ensure OIDC-capable npm
         run: npm install --global npm@11
       - run: bun install --frozen-lockfile
-      - run: bun run check
       - run: bun run build
-      - run: bun test
       - name: Inspect package contents
         run: npm pack --dry-run
       - name: Publish with npm Trusted Publishing
