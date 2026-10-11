@@ -62,6 +62,7 @@ def main():
     libc = ctypes.CDLL(None, use_errno=True)
     if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
         raise OSError(ctypes.get_errno(), "Cannot become a child subreaper")
+    os.umask(0o077)
     config = json.loads(sys.stdin.buffer.readline())
     stopped = False
     def stop(signum, frame):

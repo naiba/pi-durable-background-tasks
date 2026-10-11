@@ -31,3 +31,17 @@ for(const mode of ["stop", "host-pipe-close", "normal-exit"] as const){
   }finally{owner.stdin.end();await done;await rm(directory,{recursive:true,force:true});}
  },10000);
 }
+
+test("SIGKILL of the actual host closes ownership pipe and reaps escaped children",async()=>{
+ const directory=await mkdtemp(join(tmpdir(),"background-host-death-"));
+ const command=`python3 -c 'import os,signal,time; os.setsid(); signal.signal(signal.SIGTERM,signal.SIG_IGN); open("descendant.pid","w").write(str(os.getpid())); time.sleep(60)' & wait`;
+ const config={command,cwd:directory,log:join(directory,"output.log"),graceSeconds:0.1};
+ const host=spawn(process.execPath,["-e",`const {spawn}=require("node:child_process"); const p=spawn("python3",[${JSON.stringify(supervisor)}],{stdio:["pipe","ignore","ignore"]});p.stdin.write(${JSON.stringify(JSON.stringify(config)+"\n")});setInterval(()=>{},1000);`]);
+ const done=exited(host);
+ try{
+  await until(async()=>{try{return !!(await readFile(join(directory,"descendant.pid"),"utf8"));}catch{return false;}});
+  const pid=Number(await readFile(join(directory,"descendant.pid"),"utf8"));expect(exists(pid)).toBe(true);
+  host.kill("SIGKILL");await done;
+  await until(async()=>!exists(pid));expect(exists(pid)).toBe(false);
+ }finally{host.kill("SIGKILL");await done;await rm(directory,{recursive:true,force:true});}
+},10000);
