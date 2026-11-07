@@ -4,6 +4,7 @@ import {open} from "node:fs/promises";
 import {join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {createHash} from "node:crypto";
+export {waitForBackgroundTasks} from "./wait-all.js";
 
 export type BackgroundTask = {
  id:string; command:string; cwd:string; name:string;

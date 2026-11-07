@@ -1,6 +1,6 @@
 import {defineExtension,defineTool} from "@earendil-works/pi-durable";
-import {Type} from "@earendil-works/pi-ai";
-import {BackgroundTasks} from "./index.js";
+import {Type} from "typebox";
+import {BackgroundTasks,waitForBackgroundTasks} from "./index.js";
 // Pi 1.2 consumes output; content silently hides task IDs and status from the model.
 const result=(value:unknown)=>({output:[{type:"text" as const,text:JSON.stringify(value)}]});
 export function backgroundTasksExtension(service:BackgroundTasks,cwd:string){
@@ -15,6 +15,9 @@ export function backgroundTasksExtension(service:BackgroundTasks,cwd:string){
   defineTool({name:"background_wait",description:"Blocking observation of a background command. Use only when the next step requires its result and no independent work remains; otherwise continue working and check status later. Explicit timeout ends observation only, not execution.",replay:"safe",
    parameters:Type.Object({id:Type.String(),timeout_ms:Type.Integer({minimum:1,maximum:600000})}),
    execute:async(args,api,ctx)=>result(await service.wait(args.id,args.timeout_ms,ctx.abortSignal))}),
+  defineTool({name:"background_wait_all",description:"Observe selected commands concurrently after independent work is finished. Timeout does not stop commands.",replay:"safe",
+   parameters:Type.Object({ids:Type.Array(Type.String(),{minItems:1,maxItems:100,uniqueItems:true}),timeout_ms:Type.Integer({minimum:1,maximum:600000})}),
+   execute:async(args,api,ctx)=>result(await waitForBackgroundTasks(service,args.ids,args.timeout_ms,ctx.abortSignal))}),
   defineTool({name:"background_stop",description:"Stop a session-owned command and reap its descendants. Returns after supervisor cleanup.",replay:"unsafe",
    parameters:Type.Object({id:Type.String()}),execute:async(args)=>result(await service.stop(args.id))}),
  ]});

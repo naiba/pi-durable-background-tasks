@@ -1,6 +1,6 @@
 # Pi Durable Background Tasks
 
-Supervised background shell commands for Pi Durable. No delegated agents, model configuration, or implicit model calls.
+Supervised background shell commands for Pi Coding Agent and Pi Durable. Both adapters share one independent process core. No delegated agents, model configuration, or implicit model calls.
 
 **Initial development version. Linux only; requires Python 3.9+ and Linux pidfd support.**
 
@@ -10,9 +10,26 @@ bun add @naiba/pi-durable-background-tasks
 
 Available on [npm](https://www.npmjs.com/package/@naiba/pi-durable-background-tasks), with GitHub Actions Trusted Publishing and provenance. Node.js 22+ is required; Bun loads the TypeScript source exports, while Node loads the compiled JavaScript.
 
-This is an extension for **Pi Durable**, not an auto-discovered Pi coding-agent CLI plugin. The host must install the extension in its registry and own its lifecycle. It does not manage Claude Code or Codex background tasks.
+The host installs the appropriate adapter and owns its lifecycle. This is not an auto-discovered CLI plugin. It does not manage Claude Code or Codex background tasks. All host peer dependencies are optional: importing the core loads neither Pi runtime; importing `./coding-agent` does not load Durable.
 
 ## Usage
+
+For native Pi, install `@earendil-works/pi-coding-agent` (1.5+) and `typebox` (1.4.4+), then add the factory to your `DefaultResourceLoader`:
+
+```ts
+import {BackgroundTasks} from "@naiba/pi-durable-background-tasks";
+import {backgroundTasksExtension} from "@naiba/pi-durable-background-tasks/coding-agent";
+
+const tasks = new BackgroundTasks("/persistent/session/background");
+const extension = backgroundTasksExtension(tasks, "/workspace", {
+  onStart: task => trackOwnedTask(task.id), // optional host delivery bookkeeping
+});
+// Pass extensionFactories: [extension] to DefaultResourceLoader, reload it,
+// createAgentSession with that loader, then await session.bindExtensions(...).
+// Keep normal tool_call approval hooks; await tasks.close() at host shutdown.
+```
+
+For Durable, install `@earendil-works/pi-durable`, `@earendil-works/pi-ai` (1.2+) and `typebox` (1.4.4+). The existing `./pi` entry point remains unchanged:
 
 ```ts
 import {BackgroundTasks} from "@naiba/pi-durable-background-tasks";
@@ -34,6 +51,7 @@ unsubscribe();
 | `background_status` | `{}` | List commands and their recorded state |
 | `background_output` | `id`, optional `offset`, `limit` | Read up to 64 KiB using byte offsets |
 | `background_wait` | `id`, `timeout_ms` | Observe completion for a bounded interval |
+| `background_wait_all` | `ids`, `timeout_ms` | Observe 1–100 distinct commands concurrently |
 | `background_stop` | `id` | Stop a command and await supervisor cleanup |
 
 Wait requires `timeout_ms` between 1 and 600000. Observation timeout/cancellation does not stop the command. Commands have no implicit execution deadline.
@@ -54,7 +72,7 @@ Output reads are bounded to 64 KiB, with byte offsets. Logs are retained without
 
 [CloudCode](https://github.com/naiba/cloudcode) consumes this npm package for Pi sessions. It provides a collapsed background-activity panel, on-demand logs, explicit stop controls, native Pi approval, and protection against releasing/deleting sessions with active commands. Closing a browser is not host shutdown and does not stop commands.
 
-The package itself has no Web UI and does not automatically resume a model when a command completes. CloudCode's Claude Code/Codex ACP background activity adapters are not implemented by this package; their execution must remain native.
+CloudCode uses the native `./coding-agent` adapter, retaining its host-specific approval, completion delivery and strict log-evidence checks. The package itself has no Web UI and does not automatically resume a model when a command completes. Claude Code and Codex continue to use their own native executors.
 
 ## Development
 

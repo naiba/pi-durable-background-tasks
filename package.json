@@ -1,7 +1,7 @@
 {
   "name": "@naiba/pi-durable-background-tasks",
-  "version": "0.2.0",
-  "description": "Background shell tools for Pi Durable; no model delegation",
+  "version": "0.3.0",
+  "description": "Background shell tools for Pi Coding Agent and Pi Durable; no model delegation",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -13,6 +13,11 @@
       "bun": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./dist/index.js"
+    },
+    "./coding-agent": {
+      "bun": "./src/coding-agent.ts",
+      "types": "./src/coding-agent.ts",
+      "default": "./dist/coding-agent.js"
     },
     "./pi": {
       "bun": "./src/pi.ts",
@@ -37,13 +42,31 @@
   },
   "peerDependencies": {
     "@earendil-works/pi-durable": "^1.2.0",
-    "@earendil-works/pi-ai": "^1.2.0"
+    "@earendil-works/pi-ai": "^1.2.0",
+    "@earendil-works/pi-coding-agent": "^1.5.0",
+    "typebox": "^1.4.4"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-durable": {
+      "optional": true
+    },
+    "@earendil-works/pi-ai": {
+      "optional": true
+    },
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
+    "@earendil-works/pi-ai": "1.5.0",
+    "@earendil-works/pi-coding-agent": "1.5.0",
+    "@earendil-works/pi-durable": "1.5.0",
     "@types/bun": "^1.4.3",
-    "typescript": "~7.0.2",
-    "@earendil-works/pi-durable": "1.2.0",
-    "@earendil-works/pi-ai": "1.2.0"
+    "@types/node": "^26.6.5",
+    "typebox": "1.4.4",
+    "typescript": "~7.0.2"
   }
 }
